@@ -1,4 +1,6 @@
 """
+Pierre Frizelle, Student ID: 201767850
+
 This is where you should write your code and this is what you need to upload to Gradescope for autograding.
 
 You must NOT change the function definitions (names, arguments).
@@ -11,35 +13,46 @@ import sqlite3
 
 
 def customer_tickets(conn, customer_id):
+    # SQL query
+    query = """
+        SELECT f.film_title, s.screen, t.price
+        FROM customers c
+        JOIN tickets t ON c.customer_id = t.customer_id
+        JOIN screenings s ON s.screening_id = t.screening_id
+        JOIN films f ON f.film_id = s.film_id
+        WHERE c.customer_id = ?
+        ORDER BY f.film_title ASC
     """
-    Return a list of tuples:
-    (film_title, screen, price)
-
-    Include only tickets purchased by the given customer_id.
-    Order results by film title alphabetically.
-    """
-    pass
+    # Executes the query on the connection and returns a list of tuples
+    results = conn.execute(query, (customer_id,))
+    return results.fetchall()
 
 
 def screening_sales(conn):
+    # SQL query
+    query = """
+        SELECT COUNT(t.ticket_id) AS tickets_sold, f.film_title, s.screen
+        FROM screenings s 
+        JOIN films f ON s.film_id = f.film_id
+        LEFT JOIN tickets t ON s.screening_id = t.screening_id
+        GROUP BY s.screening_id, f.film_title
+        ORDER BY tickets_sold DESC
     """
-    Return a list of tuples:
-    (screening_id, film_title, tickets_sold)
-
-    Include all screenings, even if tickets_sold is 0.
-    Order results by tickets_sold descending.
-    """
-    pass
+    # Executes the query on the connection and returns a list of tuples
+    results = conn.execute(query)
+    return results.fetchall()
 
 
 def top_customers_by_spend(conn, limit):
+    # SQL query
+    query = """
+        SELECT c.customer_name, SUM(t.price) AS total_spent
+        FROM customers c
+        JOIN tickets t ON c.customer_id = t.customer_id
+        GROUP BY c.customer_name
+        ORDER BY total_spent DESC
+        LIMIT ?
     """
-    Return a list of tuples:
-    (customer_name, total_spent)
-
-    total_spent is the sum of ticket prices per customer.
-    Only include customers who have bought at least one ticket.
-    Order by total_spent descending.
-    Limit the number of rows returned to `limit`.
-    """
-    pass
+    # Executes the query on the connection and returns a list of tuples
+    results = conn.execute(query, (limit,))
+    return results.fetchall()
